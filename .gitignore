@@ -20,12 +20,10 @@ vagrant/
 
 contrib/azurerm/group_vars/all
 
-inventory/group_vars/k8s-cluster.yml
-
 inventory/inventory
 
 inventory/group_vars/all.yml
 
 inventory/group_vars/k8s-cluster.yml
 
-inventory/group_vars/all.yml
+
