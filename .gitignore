@@ -27,3 +27,5 @@ inventory/group_vars/all.yml
 inventory/group_vars/k8s-cluster.yml
 
 
+
+contrib/azurerm/group_vars/all

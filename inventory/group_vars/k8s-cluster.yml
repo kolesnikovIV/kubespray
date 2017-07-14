@@ -23,7 +23,7 @@ kube_users_dir: "{{ kube_config_dir }}/users"
 kube_api_anonymous_auth: false
 
 ## Change this to use another Kubernetes version, e.g. a current beta release
-kube_version: v1.6.4
+kube_version: v1.7.0
 
 # Where the binaries will be downloaded.
 # Note: ensure that you've enough disk space (about 1G)
@@ -69,7 +69,7 @@ kube_users:
 
 # Choose network plugin (calico, weave or flannel)
 # Can also be set to 'cloud', which lets the cloud provider setup appropriate routing
-kube_network_plugin: calico
+kube_network_plugin: canal
 
 # Enable kubernetes network policies
 enable_network_policy: false
@@ -121,7 +121,7 @@ docker_bin_dir: "/usr/bin"
 # Settings for containerized control plane (etcd/kubelet/secrets)
 etcd_deployment_type: docker
 kubelet_deployment_type: docker
-cert_management: script
+cert_management: vault
 vault_deployment_type: docker
 
 # K8s image pull policy (imagePullPolicy)
@@ -132,8 +132,3 @@ efk_enabled: false
 
 # Helm deployment
 helm_enabled: false
-
-# dnsmasq
-# dnsmasq_upstream_dns_servers:
-#  - /resolvethiszone.with/10.0.4.250
-#  - 8.8.8.8
