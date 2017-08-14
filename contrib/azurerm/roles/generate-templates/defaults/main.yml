@@ -1,7 +1,7 @@
 apiVersion: "2015-06-15"
 
 virtualNetworkName: "KubVNET"
-
+apiserver_port: 6443
 subnetAdminName: "ad-subnet"
 subnetMastersName: "master-subnet"
 subnetMinionsName: "minion-subnet"

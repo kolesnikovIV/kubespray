@@ -92,7 +92,7 @@
                 "description": "Allow secure kube-api",
                 "protocol": "Tcp",
                 "sourcePortRange": "*",
-                "destinationPortRange": "443",
+                "destinationPortRange": "{{ apiserver_port }}",
                 "sourceAddressPrefix": "Internet",
                 "destinationAddressPrefix": "*",
                 "access": "Allow",

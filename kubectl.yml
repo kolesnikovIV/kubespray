@@ -1,0 +1,62 @@
+---
+#original here
+#https://github.com/kubernetes-incubator/kubespray/issues/257
+
+- hosts: kube-master[0]
+  gather_facts: no
+  become: yes
+  tasks:
+    - fetch:
+        src: "/etc/kubernetes/ssl/{{ item }}.pem"
+        dest: "{{ playbook_dir }}/output/{{ item }}.pem"
+        flat: True
+      with_items:
+        - admin-{{ inventory_hostname }}-key
+        - admin-{{ inventory_hostname }}
+        - ca
+    - name: export hostname
+      set_fact:
+        kubectl_name: "{{ inventory_hostname }}"
+
+- hosts: localhost
+  become: no
+  connection: local
+  gather_facts: no
+  vars:
+    kubectl_name: "{{ hostvars[groups['kube-master'][0]].kubectl_name }}"
+    cluster_name: "{{ hostvars[groups['kube-master'][0]].azure_resource_group }}"
+    kube_api_pwd: "{{ hostvars[groups['kube-master'][0]].kube_api_pwd }}"
+    apiserver_loadbalancer_domain_name: "{{ hostvars[groups['kube-master'][0]].apiserver_loadbalancer_domain_name }}"
+    loadbalancer_apiserver: "{{ hostvars[groups['kube-master'][0]].loadbalancer_apiserver| from_yaml }}"
+  tasks:
+    - name: check if context exists
+      command: kubectl config get-contexts kubespray
+      register: kctl
+      failed_when: kctl.rc == 0
+    - block:
+      - name: create cluster kubespray
+        command: kubectl config set-cluster {{ cluster_name }} --certificate-authority={{ playbook_dir }}/output/ca.pem --server=https://{{ apiserver_loadbalancer_domain_name }}:{{ loadbalancer_apiserver.port }} --kubeconfig={{ playbook_dir }}/output/config
+      - name: create credentials {{ cluster_name }}-admin
+        command: kubectl config set-credentials {{ cluster_name }}-admin --username=kube --password={{ kube_api_pwd }} --certificate-authority={{ playbook_dir }}/output/ca.pem --client-key={{ playbook_dir }}/output/admin-{{ kubectl_name }}-key.pem --client-certificate={{ playbook_dir }}/output/admin-{{ kubectl_name }}.pem --kubeconfig={{ playbook_dir }}/output/config
+      - name: create context kubespray
+        command: kubectl config set-context {{ cluster_name }} --user={{ cluster_name }}-admin --cluster={{ cluster_name }} --kubeconfig={{ playbook_dir }}/output/config
+      when: kctl.rc != 0
+
+- hosts: vault[0]
+  gather_facts: no
+  become: yes
+  tasks:
+    - fetch:
+        src: "/etc/vault/secrets/{{ item }}"
+        dest: "{{ playbook_dir }}/vault/{{ item }}"
+        flat: True
+      with_items:
+        - root_token
+        - unseal_keys
+    - name: rm keys
+      file:
+        path: "/etc/vault/secrets/{{ item }}"
+        state: absent
+      with_items:
+        - root_token
+        - unseal_keys

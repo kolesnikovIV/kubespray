@@ -36,7 +36,7 @@ retry_stagger: 5
 kube_cert_group: kube-cert
 
 # Cluster Loglevel configuration
-kube_log_level: 2
+kube_log_level: 6
 
 # Users to create for basic auth in Kubernetes API via HTTP
 kube_api_pwd: "changeme"
@@ -52,8 +52,8 @@ kube_users:
 
 ## It is possible to activate / deactivate selected authentication methods (basic auth, static token auth)
 #kube_oidc_auth: false
-#kube_basic_auth: false
-#kube_token_auth: false
+kube_basic_auth: false
+kube_token_auth: true
 
 
 ## Variables for OpenID Connect Configuration https://kubernetes.io/docs/admin/authentication/
@@ -89,12 +89,12 @@ kube_network_node_prefix: 24
 
 # The port the API Server will be listening on.
 kube_apiserver_ip: "{{ kube_service_addresses|ipaddr('net')|ipaddr(1)|ipaddr('address') }}"
-kube_apiserver_port: 6443 # (https)
+kube_apiserver_port: 443 # (https)
 kube_apiserver_insecure_port: 8080 # (http)
 
 # DNS configuration.
 # Kubernetes cluster name, also will be used as DNS domain
-cluster_name: cluster.local
+cluster_name: "{{ azure_resource_group }}"
 # Subdomains of DNS domain to be resolved via /etc/resolv.conf for hostnet pods
 ndots: 2
 # Can be dnsmasq_kubedns, kubedns or none
@@ -122,7 +122,6 @@ docker_bin_dir: "/usr/bin"
 etcd_deployment_type: docker
 kubelet_deployment_type: docker
 cert_management: vault
-vault_deployment_type: docker
 
 # K8s image pull policy (imagePullPolicy)
 k8s_image_pull_policy: IfNotPresent

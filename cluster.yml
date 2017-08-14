@@ -9,8 +9,8 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   gather_facts: false
   vars:
-    # Need to disable pipelining for bootstrap-os as some systems have requiretty in sudoers set, which makes pipelining
-    # fail. bootstrap-os fixes this on these systems, so in later plays it can be enabled.
+     #Need to disable pipelining for bootstrap-os as some systems have requiretty in sudoers set, which makes pipelining
+     #fail. bootstrap-os fixes this on these systems, so in later plays it can be enabled.
     ansible_ssh_pipelining: false
   roles:
     - { role: kubespray-defaults}
@@ -65,7 +65,7 @@
     - { role: network_plugin, tags: network }
 
 - hosts: kube-master
-  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+#  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   roles:
     - { role: kubespray-defaults}
     - { role: kubernetes/master, tags: master }
@@ -90,58 +90,3 @@
   roles:
     - { role: kubespray-defaults}
     - { role: kubernetes-apps, tags: apps }
-
-# download keys and clear vault secrets.original here #https://github.com/kubernetes-incubator/kubespray/issues/257
-
-- hosts: kube-master[0]
-  gather_facts: no
-  become: yes
-  tasks:
-    - fetch:
-        src: "/etc/kubernetes/ssl/{{ item }}.pem"
-        dest: "{{ playbook_dir }}/kubectl/{{ item }}.pem"
-        flat: True
-      with_items:
-        - admin-{{ inventory_hostname }}-key
-        - admin-{{ inventory_hostname }}
-        - ca
-    - name: export hostname
-      set_fact:
-        kubectl_name: "{{ inventory_hostname }}"
-
-- hosts: localhost
-  connection: local
-  vars:
-    kubectl_name: "{{ hostvars[groups['kube-master'][0]].kubectl_name }}"
-  tasks:
-    - name: check if context exists
-      command: kubectl config get-contexts kubespray
-      register: kctl
-      failed_when: kctl.rc == 0
-    - block:
-      - name: create cluster kubespray
-        command: kubectl config set-cluster {{ cluster_name }} --certificate-authority={{ playbook_dir }}/kubectl/ca.pem --kubeconfig={{ playbook_dir }}/kubectl/config
-      - name: create credentials kubespray-admin
-        command: kubectl config set-credentials kubespray-admin --certificate-authority={{ playbook_dir }}/kubectl/ca.pem --client-key={{ playbook_dir }}/kubectl/admin-{{ kubectl_name }}-key.pem --client-certificate={{ playbook_dir }}/kubectl/admin-{{ kubectl_name }}.pem --kubeconfig={{ playbook_dir }}/kubectl/config
-      - name: create context kubespray
-        command: kubectl config set-context {{ cluster_name }} --password={{ kube_api_pwd }} --cluster={{ cluster_name }} --user=kube --kubeconfig={{ playbook_dir }}/kubectl/config
-      when: kctl.rc != 0
-
-- hosts: vault[0]
-  gather_facts: no
-  become: yes
-  tasks:
-    - fetch:
-        src: "/etc/vault/secrets/{{ item }}"
-        dest: "{{ playbook_dir }}/vault/{{ item }}"
-        flat: True
-      with_items:
-        - root_token
-        - unseal_keys
-    - name: rm keys
-      file:
-        path: "/etc/vault/secrets/{{ item }}"
-        state: absent
-      with_items:
-        - root_token
-        - unseal_keys

@@ -20,7 +20,7 @@
 
 - name: issue_cert | Ensure target directory exists
   file:
-    path: "{{ issue_cert_path | dirname }}" 
+    path: "{{ issue_cert_path | dirname }}"
     state: directory
     group: "{{ issue_cert_file_group | d('root' )}}"
     mode: "{{ issue_cert_dir_mode | d('0755') }}"
@@ -38,7 +38,7 @@
       format: "{{ issue_cert_format | d('pem') }}"
       ip_sans: "{{ issue_cert_ip_sans | default([]) | join(',') }}"
   register: issue_cert_result
-  when: inventory_hostname == issue_cert_hosts|first
+  #when: inventory_hostname == issue_cert_hosts|first
 
 - name: "issue_cert | Copy {{ issue_cert_path }} cert to all hosts"
   copy:

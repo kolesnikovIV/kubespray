@@ -21,4 +21,4 @@ etcd_memory_limit: 512M
 # Uncomment to set CPU share for etcd
 #etcd_cpu_limit: 300m
 
-etcd_node_cert_hosts: "{{ groups['k8s-cluster'] | union(groups.get('calico-rr', [])) }}"
+etcd_node_cert_hosts: "{{ groups['k8s-cluster'] | union(groups.get('calico-rr', [])) }}" 
